@@ -95,7 +95,8 @@ def create_agent_node(agent_config: Agent, node_id: str):
         ]
         plain_llm = get_llm(model, float(config.temperature))
         response = plain_llm.invoke([SystemMessage(content=config.system_prompt)] + synth_messages)
-        return {"messages": [response], "sender": node_id}
+        tokens = response.usage_metadata.get("total_tokens", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
+        return {"messages": [response], "sender": node_id, "context": {"tokens": tokens}}
 
     def agent_node(state: AgentState):
         messages = list(state['messages'])
@@ -107,12 +108,13 @@ def create_agent_node(agent_config: Agent, node_id: str):
             # ── Check for malformed tags in successful response content ──
             if not (hasattr(response, "tool_calls") and response.tool_calls):
                 content = response.content
-                if "<" in content and ("{" in content or "=" in content):
+                if isinstance(content, str) and "<" in content and ("{" in content or "=" in content):
                     tool_result = _try_parse_failed_tool_call(content, AVAILABLE_TOOLS)
                     if tool_result:
                         return _handle_manual_result(tool_result, messages, model_name, agent_config)
 
-            return {"messages": [response], "sender": node_id}
+            tokens = response.usage_metadata.get("total_tokens", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
+            return {"messages": [response], "sender": node_id, "context": {"tokens": tokens}}
 
         except Exception as e:
             error_str = str(e)
@@ -131,7 +133,8 @@ def create_agent_node(agent_config: Agent, node_id: str):
             plain_llm = get_llm(model_name, float(agent_config.temperature))
             fallback_prompt = f"{agent_config.system_prompt}\n\nAnswer the user's question directly using your own knowledge."
             response = plain_llm.invoke([SystemMessage(content=fallback_prompt)] + messages)
-            return {"messages": [response], "sender": node_id}
+            tokens = response.usage_metadata.get("total_tokens", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
+            return {"messages": [response], "sender": node_id, "context": {"tokens": tokens}}
 
     return agent_node
 

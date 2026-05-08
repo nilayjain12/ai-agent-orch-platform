@@ -156,7 +156,7 @@ export default function Dashboard() {
             </div>
             
             <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-3 gap-6">
                 <div>
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Status</p>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border ${
@@ -170,6 +170,12 @@ export default function Dashboard() {
                 <div>
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Workflow ID</p>
                   <p className="text-lg font-mono text-white">{selectedExecution.workflow_id}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Tokens Used</p>
+                  <p className="text-lg font-mono text-white">
+                    {selectedExecution.result?.tokens ? selectedExecution.result.tokens.toLocaleString() : "N/A"}
+                  </p>
                 </div>
               </div>
 

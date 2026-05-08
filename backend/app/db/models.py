@@ -35,9 +35,11 @@ class Execution(Base):
     __tablename__ = "executions"
     id = Column(Integer, primary_key=True, index=True)
     workflow_id = Column(Integer, ForeignKey("workflows.id"), nullable=True)
+    thread_id = Column(String, index=True, nullable=True)  # Added for memory persistence across conversational threads
     status = Column(String, default="running")  # running, completed, failed
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
+    total_tokens = Column(Integer, default=0) # Added for monitoring token usage
     result = Column(JSON, nullable=True)
 
 class LogEntry(Base):

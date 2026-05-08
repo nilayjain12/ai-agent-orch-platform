@@ -19,26 +19,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Received message from Telegram: {user_message} (chat_id: {chat_id})")
     await update.message.reply_text("Agent is processing your request...")
  
-    # Trigger the first active workflow
+    # Trigger the Customer Support workflow if active, else fallback to first active workflow
     db = SessionLocal()
     try:
-        workflow = db.query(Workflow).filter(Workflow.active == True).first()
+        workflow = db.query(Workflow).filter(Workflow.name == "Customer Support Workflow", Workflow.active == True).first()
+        if not workflow:
+            workflow = db.query(Workflow).filter(Workflow.active == True).first()
         if not workflow:
             logger.warning("No active workflows found for Telegram request.")
             await update.message.reply_text("No active workflows found. Please create and save a workflow first.")
             return
  
         from app.db.models import Execution
-        execution = Execution(workflow_id=workflow.id, status="running")
+        execution = Execution(workflow_id=workflow.id, thread_id=str(chat_id), status="running")
         db.add(execution)
         db.commit()
         db.refresh(execution)
         
-        logger.info(f"Starting execution {execution.id} for workflow {workflow.id}")
+        logger.info(f"Starting execution {execution.id} for workflow {workflow.id} (thread: {chat_id})")
         
         # Run workflow synchronously for Telegram response
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, run_workflow_bg, workflow.id, execution.id, user_message)
+        await loop.run_in_executor(None, run_workflow_bg, workflow.id, execution.id, user_message, str(chat_id))
         
         # After it's done, fetch result
         db.refresh(execution)

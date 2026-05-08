@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db, SessionLocal
 from app.db.models import Workflow, Execution, Agent, LogEntry
 from app.core.runtime import compile_workflow
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 import json
 from pydantic import BaseModel
 from typing import List, Optional
@@ -35,7 +35,7 @@ def create_workflow(workflow: WorkflowCreate, db: Session = Depends(get_db)):
 def get_workflows(db: Session = Depends(get_db)):
     return db.query(Workflow).filter(Workflow.active == True).all()
 
-def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str):
+def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str, thread_id: str = None):
     db = SessionLocal()
     try:
         workflow = db.query(Workflow).filter(Workflow.id == workflow_id).first()
@@ -47,15 +47,33 @@ def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str):
         
         graph = compile_workflow(workflow, agents)
         
+        # Load conversation history
+        messages = []
+        if thread_id:
+            past_executions = db.query(Execution).filter(
+                Execution.thread_id == thread_id, 
+                Execution.workflow_id == workflow_id,
+                Execution.status == "completed"
+            ).order_by(Execution.id.asc()).limit(10).all()
+            
+            for past_exec in past_executions:
+                if past_exec.result and past_exec.result.get("input") and past_exec.result.get("output"):
+                    messages.append(HumanMessage(content=past_exec.result["input"]))
+                    messages.append(AIMessage(content=past_exec.result["output"]))
+
+        messages.append(HumanMessage(content=input_message))
+
         # Initial state
         initial_state = {
-            "messages": [HumanMessage(content=input_message)],
+            "messages": messages,
             "sender": "user",
             "context": {}
         }
+
         
         # Stream graph execution
         full_state = initial_state
+        total_tokens = 0
         for chunk in graph.stream(initial_state, stream_mode="updates"):
             for node_id, update in chunk.items():
                 # Update full state history
@@ -65,6 +83,9 @@ def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str):
                     full_state["sender"] = update["sender"]
                 if "context" in update:
                     full_state["context"].update(update["context"])
+                    if "tokens" in update["context"]:
+                        total_tokens += update["context"]["tokens"]
+
 
                 # Determine friendly name for node
                 friendly_name = node_id
@@ -122,7 +143,12 @@ def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str):
             last_msg = full_state["messages"][-1]
             final_msg = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
         
-        execution.result = {"output": final_msg}
+        execution.result = {
+            "input": input_message,
+            "output": final_msg,
+            "tokens": total_tokens
+        }
+        execution.total_tokens = total_tokens
         db.commit()
     except Exception as e:
         execution = db.query(Execution).filter(Execution.id == execution_id).first()
@@ -134,18 +160,18 @@ def run_workflow_bg(workflow_id: int, execution_id: int, input_message: str):
         db.close()
 
 @router.post("/{workflow_id}/execute")
-async def execute_workflow(workflow_id: int, background_tasks: BackgroundTasks, input_message: str = "Hello", db: Session = Depends(get_db)):
+async def execute_workflow(workflow_id: int, background_tasks: BackgroundTasks, input_message: str = "Hello", thread_id: Optional[str] = None, db: Session = Depends(get_db)):
     db_workflow = db.query(Workflow).filter(Workflow.id == workflow_id).first()
     if not db_workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
     # Create execution record
-    execution = Execution(workflow_id=workflow_id, status="running")
+    execution = Execution(workflow_id=workflow_id, thread_id=thread_id, status="running")
     db.add(execution)
     db.commit()
     db.refresh(execution)
     
-    background_tasks.add_task(run_workflow_bg, workflow_id, execution.id, input_message)
+    background_tasks.add_task(run_workflow_bg, workflow_id, execution.id, input_message, thread_id)
     
     return {"status": "started", "execution_id": execution.id}
 

@@ -442,11 +442,21 @@ function Builder() {
                     </button>
                   </div>
                   <div className="p-5 space-y-3 bg-slate-950/90">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</p>
-                      <p className={`text-xs font-bold uppercase ${executionStatus === 'failed' ? 'text-rose-400' : 'text-emerald-400'}`}>
-                        {executionStatus}
-                      </p>
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</p>
+                        <p className={`text-xs font-bold uppercase ${executionStatus === 'failed' ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          {executionStatus}
+                        </p>
+                      </div>
+                      {(executionStatus === 'completed' || executionStatus === 'failed') && (
+                        <div className="space-y-1 text-right">
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tokens</p>
+                          <p className="text-xs font-bold font-mono text-emerald-400">
+                            {executionResult?.result?.tokens ? executionResult.result.tokens.toLocaleString() : "N/A"}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intermediate Steps</p>
