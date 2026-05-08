@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 248, 250, 252;
+  --background-start-rgb: 2, 6, 23;
+  --background-end-rgb: 15, 23, 42;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+.glass-card {
+  @apply bg-slate-900/40 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-xl;
+}
+
+/* React flow premium dark theme */
+.react-flow__node {
+  @apply bg-slate-900 border-slate-700 text-slate-100 rounded-xl shadow-2xl transition-all;
+}
+
+.react-flow__node-agent {
+  @apply bg-slate-900/80 backdrop-blur-md border-2 border-indigo-500/50 p-4 min-w-[200px];
+}
+
+.react-flow__node-input {
+  @apply bg-slate-900/80 backdrop-blur-md border-2 border-emerald-500/50 p-4 min-w-[150px];
+}
+
+.react-flow__handle {
+  @apply w-3 h-3 bg-indigo-400 border-2 border-slate-950 rounded-full !important;
+}
+
+.react-flow__controls {
+  @apply bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl !important;
+}
+
+.react-flow__controls-button {
+  @apply bg-slate-900 border-b border-slate-800 hover:bg-slate-800 fill-slate-300 !important;
+}
+
+.react-flow__minimap {
+  @apply bg-slate-900 border border-slate-800 rounded-xl shadow-2xl !important;
+}
+
+.react-flow__edge-path {
+  @apply stroke-slate-600 stroke-[3] !important;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  @apply stroke-indigo-400 !important;
+}
+
+.react-flow__attribution {
+  @apply hidden;
+}
+
