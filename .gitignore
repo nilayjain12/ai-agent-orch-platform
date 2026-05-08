@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Build artifacts
+.next/
+out/
+build/
+dist/
+
+# Local database
+backend/sql_app.db
+
+# Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+error.txt
+*_error.txt
+test_results.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+.vercel
+*.tsbuildinfo
+next-env.d.ts
