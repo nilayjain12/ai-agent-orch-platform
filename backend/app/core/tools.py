@@ -110,15 +110,34 @@ def weather(location: str) -> str:
     Constraints: Requires a valid location name; data is provided by Open-Meteo.
     """
     try:
+        logger.info(f"Fetching weather for location: '{location}'")
+        if not location:
+            return "Error: No location provided."
+
         with httpx.Client() as client:
             # 1. Geocoding: Get coordinates for the location
-            geocoding_url = f"https://geocoding-api.open-meteo.com/v1/search?name={location}&count=1&language=en&format=json"
-            geo_response = client.get(geocoding_url)
+            geocoding_url = "https://geocoding-api.open-meteo.com/v1/search"
+            geo_params = {
+                "name": location,
+                "count": 1,
+                "language": "en",
+                "format": "json"
+            }
+            geo_response = client.get(geocoding_url, params=geo_params)
             geo_response.raise_for_status()
             geo_data = geo_response.json()
 
             if not geo_data.get("results"):
-                return f"Error: Could not find location '{location}'"
+                # Try a fallback: strip country/state if present
+                short_name = location.split(',')[0].strip()
+                if short_name != location:
+                    logger.info(f"Retrying geocoding with short name: '{short_name}'")
+                    geo_params["name"] = short_name
+                    geo_response = client.get(geocoding_url, params=geo_params)
+                    geo_data = geo_response.json()
+
+                if not geo_data.get("results"):
+                    return f"Error: Could not find location '{location}'. Please try being more specific (e.g. 'New York City' instead of just 'New York')."
 
             result = geo_data["results"][0]
             lat = result["latitude"]

@@ -34,3 +34,7 @@ Thumbs.db
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+.coverage
+htmlcov/
+*.pdf
+pdf_content.txt

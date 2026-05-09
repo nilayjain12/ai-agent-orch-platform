@@ -185,7 +185,7 @@ export default function Dashboard() {
                   {selectedExecution.result ? (
                     typeof selectedExecution.result === 'string' 
                       ? selectedExecution.result 
-                      : JSON.stringify(selectedExecution.result, null, 2)
+                      : (selectedExecution.result.output || JSON.stringify(selectedExecution.result, null, 2))
                   ) : (
                     <span className="text-slate-600 italic">No output data available yet.</span>
                   )}
