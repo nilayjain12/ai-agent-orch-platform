@@ -37,35 +37,46 @@ def get_llm(model_name: str, temperature: float = 0.7):
 
 
 def _try_parse_failed_tool_call(content: str, available_tools: dict) -> str | None:
-    """
-    Parses malformed tool tags in content and executes them manually.
-    Handles formats like:
-    <function=name>{"arg": "val"}
-    <web_search>{"query": "..."}</web_search>
-    <weather>{"location": "..."};</function>
-    """
     # Pattern 1: <function=name>{"args": ...}
     m1 = re.search(r'<function=(\w+)[^>{]*>?\s*(\{.*?\})', content, re.DOTALL)
     
     # Pattern 2: <tool_name>{"args": ...}
     tool_names = "|".join(available_tools.keys())
     m2 = re.search(rf'<({tool_names})>\s*({{.*?}})', content, re.DOTALL)
+
+    # Pattern 3: _TASK={"task_name": "...", "query": "..."}
+    m3 = re.search(r'_TASK\s*=\s*(\{.*?\})', content, re.DOTALL)
     
     match = m1 or m2
-    if not match:
+    if match:
+        func_name = match.group(1)
+        args_str = match.group(2).strip()
+    elif m3:
+        try:
+            task_data = json.loads(m3.group(1))
+            func_name = "web_search"
+            query_val = task_data.get("query") or task_data.get("task_name") or task_data.get("topic", "")
+            args = {"query": query_val}
+            tool_fn = available_tools.get(func_name)
+            if tool_fn and args["query"]:
+                result = tool_fn.invoke(args)
+                return str(result)
+        except:
+            return None
+        return None
+    else:
         return None
 
-    func_name = match.group(1)
-    args_str = match.group(2).strip()
-    
-    # Clean up trailing semicolons or noise after JSON
     if args_str.endswith(';'):
         args_str = args_str[:-1]
 
     try:
         args = json.loads(args_str)
     except json.JSONDecodeError:
-        return None
+        try:
+            args = json.loads(args_str.replace("'", '"'))
+        except:
+            return None
 
     tool_fn = available_tools.get(func_name)
     if not tool_fn:

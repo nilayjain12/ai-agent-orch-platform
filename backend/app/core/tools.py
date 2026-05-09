@@ -16,24 +16,31 @@ def web_search(query: str) -> str:
     Constraints: May be subject to rate limits; results are limited to the top 5 relevant findings.
     """
     try:
-        ddgs = DDGS()
+        logger.info(f"Executing web_search with query: '{query}'")
+        if not query or len(query.strip()) < 2:
+            return "Error: Search query is too short or empty."
+
         # Check if the query is news-related
         news_keywords = ["news", "today", "latest", "trending", "breaking"]
         is_news = any(keyword in query.lower() for keyword in news_keywords)
 
         results = []
-        with DDGS() as ddgs:
-            try:
+        try:
+            with DDGS() as ddgs:
                 if is_news:
-                    results = list(ddgs.news(query, max_results=5, timeout=10))
+                    logger.info(f"Attempting news search for: {query}")
+                    results = list(ddgs.news(query, max_results=5))
+                
                 if not results:
-                    results = list(ddgs.text(query, max_results=5, timeout=10))
-            except Exception as e:
-                logger.warning(f"Search failed: {str(e)}")
-                results = []
+                    logger.info(f"Attempting text search for: {query}")
+                    results = list(ddgs.text(query, max_results=5))
+        except Exception as e:
+            logger.error(f"DuckDuckGo search core failure: {str(e)}")
+            return f"Error performing web search: {str(e)}. This might be due to rate limits or connectivity issues."
             
         if not results:
-            return "No results found for the given query. Please try a different query or be more specific."
+            logger.warning(f"No results returned for query: {query}")
+            return f"No results found for the query '{query}'. Please try a different query or be more specific."
             
         formatted_results = []
         for r in results:
@@ -45,6 +52,7 @@ def web_search(query: str) -> str:
             
         return "\n\n---\n\n".join(formatted_results)
     except Exception as e:
+        logger.exception("Unexpected error in web_search tool")
         return f"Error performing web search: {str(e)}"
 
 @tool
