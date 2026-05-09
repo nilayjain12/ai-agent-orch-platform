@@ -7,7 +7,7 @@ A local-first, production-grade platform for designing, managing, and executing 
 ## 📺 Demo
 
 Check out the platform in action:
-[![Watch the Demo](https://img.shields.io/badge/YouTube-Watch%20Now-red?style=for-the-badge&logo=youtube)](YOUR_YOUTUBE_VIDEO_LINK_HERE)
+[![Watch the Demo](https://img.shields.io/badge/YouTube-Watch%20Now-red?style=for-the-badge&logo=youtube)](https://youtu.be/SK0MhaYiB8g)
 
 ---
 
