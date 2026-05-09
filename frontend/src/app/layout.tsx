@@ -25,6 +25,7 @@ export default function RootLayout({
             <Activity className="w-8 h-8" />
             <h1 className="text-xl font-bold tracking-tight">AgentOrch</h1>
           </div>
+          {/* Main Navigation */}
           
           <nav className="flex-1 space-y-2">
             <Link href="/" className="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 transition-colors text-slate-300 hover:text-white group">

@@ -428,20 +428,20 @@ function Builder() {
 
           {/* Execution Progress Overlay */}
           {executionStatus && (
-            <div className="absolute bottom-6 right-6 z-10 w-96 animate-in slide-in-from-bottom-4 duration-300">
-               <div className="glass-card shadow-2xl border-emerald-500/30 overflow-hidden">
-                  <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center">
+            <div className="absolute bottom-6 right-6 z-20 w-96 max-h-[85%] flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+               <div className="glass-card shadow-2xl border-emerald-500/30 overflow-hidden flex flex-col">
+                  <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
                     <h4 className="text-sm font-bold flex items-center uppercase tracking-widest">
                       {executionStatus === 'running' && <Loader2 className="w-4 h-4 mr-2 text-emerald-400 animate-spin" />}
                       {executionStatus === 'completed' && <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />}
                       {executionStatus === 'failed' && <AlertCircle className="w-4 h-4 mr-2 text-rose-400" />}
                       Execution Console
                     </h4>
-                    <button onClick={() => setExecutionStatus(null)} className="text-slate-500 hover:text-white">
+                    <button onClick={() => setExecutionStatus(null)} className="text-slate-500 hover:text-white p-1 hover:bg-slate-800 rounded-md transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="p-5 space-y-3 bg-slate-950/90">
+                  <div className="p-5 space-y-4 bg-slate-950/90 overflow-y-auto custom-scrollbar">
                     <div className="flex justify-between items-center">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</p>
@@ -458,23 +458,24 @@ function Builder() {
                         </div>
                       )}
                     </div>
-                    <div className="space-y-1">
+                    
+                    <div className="space-y-2">
                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Intermediate Steps</p>
-                      <div className="bg-black/40 rounded-lg p-3 max-h-48 overflow-y-auto border border-slate-800/50 custom-scrollbar">
+                      <div className="bg-black/40 rounded-lg p-3 max-h-40 overflow-y-auto border border-slate-800/50 custom-scrollbar text-[10px]">
                         {executionResult?.logs && executionResult.logs.length > 0 ? (
                           executionResult.logs.map((log: any) => (
                             <LogItem key={log.id} log={log} />
                           ))
                         ) : (
-                          <span className="text-slate-600 italic text-[10px]">Processing pipeline...</span>
+                          <span className="text-slate-600 italic">Processing pipeline...</span>
                         )}
                       </div>
                     </div>
 
                     {(executionStatus === 'completed' || executionStatus === 'failed') && executionResult?.result && (
-                      <div className="space-y-1 animate-in slide-in-from-top-2 duration-300">
+                      <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Final Result</p>
-                        <div className="bg-emerald-500/5 rounded-lg p-3 text-xs font-mono text-emerald-100 border border-emerald-500/20 whitespace-pre-wrap">
+                        <div className="bg-emerald-500/5 rounded-lg p-3 text-[11px] font-mono text-emerald-100 border border-emerald-500/20 whitespace-pre-wrap max-h-60 overflow-y-auto custom-scrollbar">
                           {typeof executionResult.result === 'string' 
                             ? executionResult.result 
                             : (executionResult.result.output || JSON.stringify(executionResult.result, null, 2))}
