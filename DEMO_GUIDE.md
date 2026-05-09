@@ -39,14 +39,14 @@ In the **Agents** tab, click **"Create New Agent"** and enter the following:
 ---
 
 ## 🔍 Demo 2: Smart Research & Triage
-This is a more complex workflow where one agent "thinks" and another "searches".
+This is a more complex workflow where one agent "thinks" and conditionally routes to another agent to "search" only if necessary.
 
 ### Step 1: Create the Search Sub-Agent
 Create an agent with these details:
 - **Name**: `Data Researcher`
 - **Role**: `Web Researcher`
 - **Description**: `Specializes in fetching live data from the internet.`
-- **System Prompt**: `You are a research expert. Use your tools to find the single most relevant piece of information or data point requested. Provide a concise response.`
+- **System Prompt**: `You are a research expert. Read the conversation history. Use your tools to find the single most relevant piece of information or data point requested. Provide a concise, final response to the user.`
 - **Tools**: Select `web_search` and `http_request`.
 - **Save** the agent.
 
@@ -55,18 +55,22 @@ Create another agent:
 - **Name**: `System Triage`
 - **Role**: `Intent Classifier`
 - **Description**: `Analyzes user requests and routes them to the search team.`
-- **System Prompt**: `You are the first point of contact. Analyze the user's request. If they need information that requires a search, summarize their need and pass it to the research agent. Be helpful and professional.`
+- **System Prompt**: `You are the first point of contact. Analyze the user's request. If they are asking for live data, facts, or news that requires a web search, your response MUST include the exact phrase 'ROUTE_TO_SEARCH' followed by a summary of what needs to be searched. If it's just a general greeting or conversation, answer them normally without the phrase.`
 - **Tools**: None (This agent uses its "brain" to triage).
 - **Save** the agent.
 
 ### Step 3: Build the Research Workflow
+To make the agents work together intelligently, we will use a **Condition Node**.
 1. Go to the **Builder** tab.
-2. Drag a **Trigger (Input)** node.
-3. Drag **two Agent nodes**.
-4. Set the first Agent node to `System Triage`.
-5. Set the second Agent node to `Data Researcher`.
-6. **Connect** them in this order:
-   `Trigger` ➡️ `System Triage` ➡️ `Data Researcher`
+2. Drag a **Trigger (Input)** node to the canvas.
+3. Drag **two Agent nodes**. Set the first to `System Triage` and the second to `Data Researcher`.
+4. Drag a **Condition** node to the canvas.
+5. Click on the Condition node and enter the condition: `contains 'ROUTE_TO_SEARCH'`
+6. **Connect** them using the specific True/False handles:
+   * `Trigger` ➡️ `System Triage`
+   * `System Triage` ➡️ `Condition Node` (connect to its left input)
+   * `Condition Node` (**True** handle) ➡️ `Data Researcher`
+   * *(Leave the **False** handle unconnected so the workflow simply returns the Triage Agent's conversational response!)*
 7. **Save** the workflow as `Smart Research Pipeline`.
 
 ### Step 4: Test It!
