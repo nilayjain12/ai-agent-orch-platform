@@ -18,11 +18,12 @@ We need a cloud database that won't get erased when servers restart.
 3. Give your project a name (e.g., `agentorch-db`) and a strong database password.
 4. Select a region close to your users and click **Create new project**.
 5. Once provisioned, click the **Settings** gear icon in the left sidebar, then click **Database**.
-6. Scroll down to **Connection string** and select the **URI** tab.
-7. Copy the connection string. It will look something like this:
-   `postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxx.supabase.co:5432/postgres`
-8. *(Remember to replace `[YOUR-PASSWORD]` with the password you created in step 3).*
-9. **Save this URL somewhere safe. This is your `DATABASE_URL`.**
+6. Scroll down to **Connection string**.
+7. **CRITICAL:** Check the box that says **"Use connection pooler"** (this gives you an IPv4 address, which Render requires).
+8. Copy the connection string. It will look something like this (notice the domain is usually `pooler.supabase.com` and port is `6543`):
+   `postgresql://postgres.[project-ref]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`
+9. *(Remember to replace `[YOUR-PASSWORD]` with the password you created in step 3).*
+10. **Save this URL somewhere safe. This is your `DATABASE_URL`.**
 
 ---
 
